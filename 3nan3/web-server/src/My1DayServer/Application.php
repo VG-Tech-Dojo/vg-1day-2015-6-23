@@ -183,7 +183,8 @@ class Application extends \Silex\Application
 			$dateLabel = $split[0];
 			if($cityObj == null) {
 				// TODO IPから現在位置取得したい
-				$cityObj = $this['repository.weather']->getCity("東京");
+				//$cityObj = $this['repository.weather']->getCity("東京");
+				return 'ちょっとわかんないっすねー';
 			}
 		}
 		
