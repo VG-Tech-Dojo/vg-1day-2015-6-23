@@ -24,23 +24,22 @@ $app->post('/messages', function (Request $request) use ($app) {
     $username = isset($data['username']) ? $data['username'] : '';
     $body = isset($data['body']) ? $data['body'] : '';
 
-	if($body == "uranai") {
-		switch (rand(0, 2)) {
-		case 0:
-			$body = "大吉";
-			break;
-		case 1:
-			$body = "吉";
-			break;
-		case 2:
-			$body = "凶";
-			break;
+	if(1 == preg_match('/^((今日)|(明日)|(明後日))の(.+の)?天気は？?$/u', $body)) {
+		$split = mb_split('の', $body);
+		$date = $split[0];
+		if(count($array) == 3) {
+			$city = $split[1];
 		}
+		
 	}
-
+    
     $createdMessage = $app->createMessage($username, $body, base64_encode(file_get_contents($app['icon_image_path'])));
-
+	
     return $app->json($createdMessage);
+});
+
+$app->get('/weather/{dateLabel}/{city}', function ($dateLabel, $city) use ($app) {
+	return $app->getWeather($dateLabel, $city);
 });
 
 $app->delete('/messages/{id}', function ($id) use ($app) {

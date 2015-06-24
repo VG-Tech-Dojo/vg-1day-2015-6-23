@@ -27,6 +27,7 @@ class Application extends \Silex\Application
         $this->configureDefaultIconImagePath();
 
         $this->configureRepository();
+        $this->configureWeather();
     }
 
     public function configureLogger()
@@ -91,6 +92,11 @@ class Application extends \Silex\Application
     {
         $this['repository.message'] = function($app) { return new Repository\MessageRepository($app['db']); };
     }
+
+	public function configureWeather()
+	{
+		$this['weather'] = function($app) { return new Weather(); };
+	}
 
     public function configureApiSchemaValidator()
     {
@@ -163,6 +169,11 @@ class Application extends \Silex\Application
 
         return $this->getMessage($id);
     }
+
+	public function getWeather($dateLabel, $city)
+	{
+		return $this['weather']->forecast($dateLabel, $city);
+	}
 
     protected function getBaseTimezone()     
     {                                        
