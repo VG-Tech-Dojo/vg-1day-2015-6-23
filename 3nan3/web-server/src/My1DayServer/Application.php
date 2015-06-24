@@ -27,6 +27,7 @@ class Application extends \Silex\Application
         $this->configureDefaultIconImagePath();
 
         $this->configureRepository();
+        $this->configureWeather();
     }
 
     public function configureLogger()
@@ -90,7 +91,13 @@ class Application extends \Silex\Application
     public function configureRepository()
     {
         $this['repository.message'] = function($app) { return new Repository\MessageRepository($app['db']); };
+        $this['repository.weather'] = function($app) { return new Repository\WeatherCityRepository($app['db']); };
     }
+
+	public function configureWeather()
+	{
+		$this['weather'] = function($app) { return new Weather(); };
+	}
 
     public function configureApiSchemaValidator()
     {
@@ -163,6 +170,31 @@ class Application extends \Silex\Application
 
         return $this->getMessage($id);
     }
+
+	public function getWeatherMessage($message)
+	{
+		$split = preg_split("/の/u", $message, -1, PREG_SPLIT_NO_EMPTY);
+		$cityObj = $this['repository.weather']->getCity($split[0]);
+		if($cityObj != null) {
+			$dateLabel = $split[1];
+		}
+		else {
+			$cityObj = $this['repository.weather']->getCity($split[1]);
+			$dateLabel = $split[0];
+			if($cityObj == null) {
+				// TODO IPから現在位置取得したい
+				//$cityObj = $this['repository.weather']->getCity("東京");
+				return 'ちょっとわかんないっすねー';
+			}
+		}
+		
+		return $this['weather']->forecast($dateLabel, $cityObj);
+	}
+	
+	public function initWeatherCity()
+	{
+		$this['repository.weather']->registCityFromXml();
+	}
 
     protected function getBaseTimezone()     
     {                                        
