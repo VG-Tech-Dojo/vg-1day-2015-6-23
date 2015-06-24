@@ -7,7 +7,7 @@ class Weather
 	public function forecast($dateLabel, $city) {	
 		$city_id = 400040; // DBか何かで$cityにマッチしたID引っ張ってくる
 		
-		$obj = $this->getWeather($city_id);
+		$obj = $this->apiRest($city_id);
 		if($obj == null) { return 'ちょっとわかんないですねー'; }
 		
 		$message = null;
@@ -23,7 +23,10 @@ class Weather
 		return $message;
 	}
 	
-	public function getWeather($city_id) {
+	/*
+	 * Livedoor Weather Web ServiceのREST APIから天気予報取得
+	 */
+	public function getWeatherForecast($city_id) {
 		$ch = curl_init();
 		$url = "http://weather.livedoor.com/forecast/webservice/json/v1";
 		$options = array(

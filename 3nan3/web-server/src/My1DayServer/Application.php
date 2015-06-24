@@ -91,6 +91,7 @@ class Application extends \Silex\Application
     public function configureRepository()
     {
         $this['repository.message'] = function($app) { return new Repository\MessageRepository($app['db']); };
+        $this['repository.weather'] = function($app) { return new Repository\WeatherCityRepository($app['db']); };
     }
 
 	public function configureWeather()
@@ -173,6 +174,14 @@ class Application extends \Silex\Application
 	public function getWeather($dateLabel, $city)
 	{
 		return $this['weather']->forecast($dateLabel, $city);
+	}
+	
+	/*
+	 * vg_weather_cityの初期化＆データ挿入だからむやみに実行しない
+	 */
+	public function initWeatherCity()
+	{
+		return $this['repository.weather']->registCityFromXml();
 	}
 
     protected function getBaseTimezone()     

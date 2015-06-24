@@ -42,6 +42,10 @@ $app->get('/weather/{dateLabel}/{city}', function ($dateLabel, $city) use ($app)
 	return $app->getWeather($dateLabel, $city);
 });
 
+$app->get('/init_weather', function () use ($app) {
+	return $app->initWeatherCity();
+});
+
 $app->delete('/messages/{id}', function ($id) use ($app) {
     $app->deleteMessage($id);
 
