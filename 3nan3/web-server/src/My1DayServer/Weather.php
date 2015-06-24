@@ -5,15 +5,13 @@ namespace My1DayServer;
 class Weather
 {
 	public function forecast($dateLabel, $city) {	
-		$city_id = 400040; // DBか何かで$cityにマッチしたID引っ張ってくる
-		
-		$obj = $this->apiRest($city_id);
+		$obj = $this->getWeatherForecast($city['id']);
 		if($obj == null) { return 'ちょっとわかんないですねー'; }
 		
 		$message = null;
 		foreach($obj['forecasts'] as $forecast) {
 			if($forecast['dateLabel'] == $dateLabel) {
-				$message = $dateLabel."の".$city."の天気は".$forecast['telop']."でしょう";
+				$message = $dateLabel."の".$city['title']."の天気は".$forecast['telop']."でしょう";
 			}
 		}
 		if($message == null) {
@@ -26,7 +24,7 @@ class Weather
 	/*
 	 * Livedoor Weather Web ServiceのREST APIから天気予報取得
 	 */
-	public function getWeatherForecast($city_id) {
+	private function getWeatherForecast($city_id) {
 		$ch = curl_init();
 		$url = "http://weather.livedoor.com/forecast/webservice/json/v1";
 		$options = array(

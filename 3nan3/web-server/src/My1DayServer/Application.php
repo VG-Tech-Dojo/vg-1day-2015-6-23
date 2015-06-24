@@ -171,17 +171,15 @@ class Application extends \Silex\Application
         return $this->getMessage($id);
     }
 
-	public function getWeather($dateLabel, $city)
+	public function getWeatherMessage($dateLabel, $city)
 	{
-		return $this['weather']->forecast($dateLabel, $city);
+		$cityObj = $this['repository.weather']->getCity($city);
+		return $this['weather']->forecast($dateLabel, $cityObj);
 	}
 	
-	/*
-	 * vg_weather_cityの初期化＆データ挿入だからむやみに実行しない
-	 */
 	public function initWeatherCity()
 	{
-		return $this['repository.weather']->registCityFromXml();
+		$this['repository.weather']->registCityFromXml();
 	}
 
     protected function getBaseTimezone()     

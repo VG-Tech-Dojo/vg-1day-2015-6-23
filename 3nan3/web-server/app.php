@@ -24,13 +24,16 @@ $app->post('/messages', function (Request $request) use ($app) {
     $username = isset($data['username']) ? $data['username'] : '';
     $body = isset($data['body']) ? $data['body'] : '';
 
-	if(1 == preg_match('/^((今日)|(明日)|(明後日))の(.+の)?天気は？?$/u', $body)) {
-		$split = mb_split('の', $body);
-		$date = $split[0];
-		if(count($array) == 3) {
+	if(1 == preg_match('/^((今日)|(明日)|(明後日))の(.+の)?天気(は？?)?$/u', $body)) {
+		$split = preg_split("/の/u", $body, -1, PREG_SPLIT_NO_EMPTY);
+		$dateLabel = $split[0];
+		if(count($split) == 3) {
 			$city = $split[1];
 		}
-		
+		else {
+			$city = '東京'; // TODO IPから現在位置取得したい
+		}
+		$body = $app->getWeather($dateLabel, $city);
 	}
     
     $createdMessage = $app->createMessage($username, $body, base64_encode(file_get_contents($app['icon_image_path'])));
@@ -42,9 +45,10 @@ $app->get('/weather/{dateLabel}/{city}', function ($dateLabel, $city) use ($app)
 	return $app->getWeather($dateLabel, $city);
 });
 
-$app->get('/init_weather', function () use ($app) {
+// FIXME 地域名→id変換用のDBを初期化＆データ挿入するんだけど、こんなところじゃなくてもっといいところ（？）で
+/*$app->get('/init_weather', function () use ($app) {
 	return $app->initWeatherCity();
-});
+});*/
 
 $app->delete('/messages/{id}', function ($id) use ($app) {
     $app->deleteMessage($id);

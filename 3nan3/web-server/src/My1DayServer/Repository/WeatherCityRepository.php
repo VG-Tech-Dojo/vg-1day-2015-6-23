@@ -5,85 +5,69 @@ namespace My1DayServer\Repository;
 class WeatherCityRepository
 {
     protected $conn;
-    private $dbName = 'vg_weather_city';
+    private $tableName = 'vg_weather_city';
 
     public function __construct($conn)
     {
         $this->conn = $conn;
     }
 
+	/*
+	 * vg_weather_cityの初期化＆データ挿入だからむやみに実行しない
+	 */
 	public function registCityFromXml() {
+	
 		$obj = $this->getPrimaryAreaXml();
 		
-		
-		
-		return $obj;
+		$this->deleteAllCity();
+		foreach($obj['channel']['ldWeather_source']['pref'] as $pref) {
+			if(array_values($pref['city']) === $pref['city']) { // 要素が一つだと(数値の)配列にならないので連想配列かどうかで判断
+				foreach($pref['city'] as $city) {
+					$this->createCity($city['@attributes']['id'], $city['@attributes']['title']);
+				}
+			}
+			else {
+				$city = $pref['city'];
+				$this->createCity($city['@attributes']['id'], $city['@attributes']['title']);
+			}
+		}
 	}
 	
 	private function getPrimaryAreaXml() {
-		//$xmlObject = simplexml_load_file('http://weather.livedoor.com/forecast/rss/primary_area.xml');
 		$xml = file_get_contents('http://weather.livedoor.com/forecast/rss/primary_area.xml');
 		// xmlタグの名前空間(:で区切られるやつ)がうまくパース出来ないので_に置き換える
 		$xml = preg_replace("/<([^>]+?):(.+?)>/", "<$1_$2>", $xml); 
 		$xmlObject = simplexml_load_string($xml);
-		//$xmlArray = json_encode( $xmlObject->rss->channel->chldren('ldWeather', true)->source );
-		return json_encode($xmlObject->channel->ldWeather_source);
-		/*$ch = curl_init();
-		$url = "http://weather.livedoor.com/forecast/rss/primary_area.xml";
-		$options = array(
-			CURLOPT_URL => $url,
-			CURLOPT_HEADER => false,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_TIMEOUT => 60, // TODO 失敗した場合どうなるのか
-			CURLOPT_CUSTOMREQUEST => "GET",
-			);
-		curl_setopt_array($ch, $options);
-		$response = json_encode(curl_exec($ch)) ;
-		curl_close($ch);
-		return $response;*/
+		return json_decode( json_encode($xmlObject), true);
 	}
 
-    private function isExistingCity($title)
+    public function getCity($title)
     {
-        $sql = 'SELECT id FROM '.$dbName.' WHERE title = ?';
-        $params = [$title];
-
-        return (bool)$this->conn->fetchColumn($sql, $params);
-    }
-
-    private function getAllCity()
-    {
-        $sql = 'SELECT * FROM '.$dbName;
-
-        return $this->conn->fetchAll($sql);
-    }
-
-    private function getCity($title)
-    {
-        $sql = 'SELECT * FROM '.$dbName.' WHERE title = ?';
+        $sql = 'SELECT * FROM '.$this->tableName.' WHERE title = ?';
         $params = [$title];
 
         return $this->conn->fetchAssoc($sql, $params);
     }
 
-    private function deleteCity($id)
+    private function deleteAllCity()
     {
-        $sql = 'DELETE FROM '.$dbName.' WHERE id = ?';
-        $params = [$id];
+        $sql = 'DELETE FROM '.$this->tableName;
+        $params = [];
 
         $this->conn->executeUpdate($sql, $params);
     }
 
-    /*private function createCity($cityId, $cityTitle)
+    private function createCity($cityId, $cityTitle)
     {
-        $data = array_merge('id' => $cityId,
+        $data = array(
+            'id' => $cityId,
             'title' => $cityTitle,
-        ]);
-
-        $queryResult = $this->conn->insert($dbName, $data);
+        );
+        
+        $queryResult = $this->conn->insert($this->tableName, $data);
         if (!$queryResult) {
             return false;
         }
         return true;
-    }*/
+    }
 }
