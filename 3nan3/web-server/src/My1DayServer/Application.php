@@ -171,9 +171,22 @@ class Application extends \Silex\Application
         return $this->getMessage($id);
     }
 
-	public function getWeatherMessage($dateLabel, $city)
+	public function getWeatherMessage($message)
 	{
-		$cityObj = $this['repository.weather']->getCity($city);
+		$split = preg_split("/の/u", $message, -1, PREG_SPLIT_NO_EMPTY);
+		$cityObj = $this['repository.weather']->getCity($split[0]);
+		if($cityObj != null) {
+			$dateLabel = $split[1];
+		}
+		else {
+			$cityObj = $this['repository.weather']->getCity($split[1]);
+			$dateLabel = $split[0];
+			if($cityObj == null) {
+				// TODO IPから現在位置取得したい
+				$cityObj = $this['repository.weather']->getCity("東京");
+			}
+		}
+		
 		return $this['weather']->forecast($dateLabel, $cityObj);
 	}
 	
